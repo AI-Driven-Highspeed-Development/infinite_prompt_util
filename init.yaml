@@ -1,0 +1,5 @@
+version: 0.0.1
+folder_path: utils/infinite_prompt_util
+type: util
+requirements: []
+repo_url: https://github.com/AI-Driven-Highspeed-Development/infinite_prompt_util.git

@@ -1,0 +1,6 @@
+{
+    "module_name": "infinite_prompt_util",
+    "path": {
+        "data": "./project/data/infinite_prompt_util"
+    }
+}
