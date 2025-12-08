@@ -6,12 +6,12 @@ This utility provides a TUI that allows users to either:
 - Type additional instructions to continue
 
 Uses the `rich` library for beautiful terminal output.
+
+Usage:
+    python -m utils.infinite_prompt_util.infinite_prompt
 """
 
 from __future__ import annotations
-
-from dataclasses import dataclass
-from enum import Enum
 
 from rich.console import Console
 from rich.panel import Panel
@@ -20,59 +20,31 @@ from rich.text import Text
 from rich.style import Style
 
 
-class PromptResult(Enum):
-    """Result type from the infinite prompt."""
-    STOP = "stop"
-    CONTINUE = "continue"
-
-
-@dataclass
-class InfinitePromptResponse:
-    """Response from the infinite prompt TUI."""
-    result: PromptResult
-    instruction: str | None = None
-
-    @property
-    def should_stop(self) -> bool:
-        """Check if the agent should stop."""
-        return self.result == PromptResult.STOP
-
-    @property
-    def should_continue(self) -> bool:
-        """Check if the agent should continue."""
-        return self.result == PromptResult.CONTINUE
-
-
-def prompt_for_next_action(
-    title: str = "Agent Checkpoint",
-    stop_message: str = "Press Ctrl+C to stop the agent",
-    continue_message: str = "Or type instructions below to continue",
-) -> InfinitePromptResponse:
+def prompt_for_next_action() -> None:
     """
-    Display a beautiful TUI prompt asking user for next action.
-
-    Args:
-        title: Title to display in the panel header
-        stop_message: Message explaining how to stop
-        continue_message: Message explaining how to continue
-
-    Returns:
-        InfinitePromptResponse with result type and optional instruction
+    Display a TUI prompt asking user for next action.
+    
+    Outputs to stdout:
+    - "STOP" if user pressed Ctrl+C
+    - "CONTINUE:" followed by instruction if user typed something
+    - "CONTINUE:" with empty instruction if user pressed Enter
+    
+    Agent reads the terminal output to determine next action.
     """
     console = Console()
 
     # Build the prompt panel content
     content = Text()
     content.append("⏸  ", style=Style(color="yellow", bold=True))
-    content.append(stop_message, style=Style(color="yellow"))
+    content.append("Press Ctrl+C to stop the agent", style=Style(color="yellow"))
     content.append("\n")
     content.append("▶  ", style=Style(color="cyan", bold=True))
-    content.append(continue_message, style=Style(color="cyan"))
+    content.append("Or type instructions below to continue", style=Style(color="cyan"))
 
     # Display the panel
     panel = Panel(
         content,
-        title=f"[bold magenta]✦ {title} ✦[/bold magenta]",
+        title="[bold magenta]✦ Agent Checkpoint ✦[/bold magenta]",
         border_style="bright_blue",
         padding=(1, 2),
     )
@@ -87,69 +59,14 @@ def prompt_for_next_action(
             show_default=False,
         )
 
-        if instruction.strip():
-            return InfinitePromptResponse(
-                result=PromptResult.CONTINUE,
-                instruction=instruction.strip(),
-            )
-        else:
-            # Empty input - ask again or treat as continue with no instruction
-            console.print(
-                "[dim]Empty input - continuing with no additional instructions[/dim]"
-            )
-            return InfinitePromptResponse(
-                result=PromptResult.CONTINUE,
-                instruction=None,
-            )
+        # Output in parseable format for agent
+        print(f"CONTINUE:{instruction.strip()}")
 
     except KeyboardInterrupt:
         console.print()
         console.print("[bold red]✋ Agent stopped by user[/bold red]")
-        return InfinitePromptResponse(result=PromptResult.STOP)
+        print("STOP")
 
 
-def run_infinite_prompt_loop(
-    task_callback: callable | None = None,
-    title: str = "Agent Checkpoint",
-) -> list[str]:
-    """
-    Run a loop that repeatedly prompts for instructions until stopped.
-
-    Args:
-        task_callback: Optional callback that receives each instruction.
-                      Signature: callback(instruction: str | None) -> None
-        title: Title to display in the prompt panel
-
-    Returns:
-        List of all instructions provided during the session
-    """
-    console = Console()
-    instructions: list[str] = []
-
-    console.print()
-    console.print(
-        "[bold bright_blue]═══════════════════════════════════════[/bold bright_blue]"
-    )
-    console.print(
-        "[bold bright_blue]       Infinite Prompt Mode Active      [/bold bright_blue]"
-    )
-    console.print(
-        "[bold bright_blue]═══════════════════════════════════════[/bold bright_blue]"
-    )
-
-    while True:
-        response = prompt_for_next_action(title=title)
-
-        if response.should_stop:
-            break
-
-        if response.instruction:
-            instructions.append(response.instruction)
-
-        if task_callback:
-            task_callback(response.instruction)
-
-    console.print()
-    console.print(f"[dim]Session ended. {len(instructions)} instruction(s) provided.[/dim]")
-
-    return instructions
+if __name__ == "__main__":
+    prompt_for_next_action()

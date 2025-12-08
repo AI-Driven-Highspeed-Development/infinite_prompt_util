@@ -18,49 +18,27 @@ pip install rich
 
 ## Usage
 
-### Basic Usage
+Agent runs the script directly and reads the terminal output:
 
-```python
-from utils.infinite_prompt_util import prompt_for_next_action
-
-response = prompt_for_next_action()
-
-if response.should_stop:
-    print("Agent stopped by user")
-elif response.should_continue:
-    if response.instruction:
-        print(f"Continue with: {response.instruction}")
-    else:
-        print("Continue with no additional instructions")
+```bash
+python -m utils.infinite_prompt_util.infinite_prompt
 ```
 
-### Loop Mode
+### Output Format
 
-```python
-from utils.infinite_prompt_util import run_infinite_prompt_loop
+The last line of output will be one of:
+- `STOP` - User pressed Ctrl+C
+- `CONTINUE:<instruction>` - User wants to continue, instruction after colon (may be empty)
 
-def process_instruction(instruction: str | None):
-    if instruction:
-        print(f"Processing: {instruction}")
+### Example Output
 
-# Run until user presses Ctrl+C
-instructions = run_infinite_prompt_loop(task_callback=process_instruction)
-print(f"Session ended with {len(instructions)} instructions")
 ```
-
-## API
-
-### `prompt_for_next_action(title, stop_message, continue_message) -> InfinitePromptResponse`
-
-Display a single prompt and return the user's response.
-
-### `run_infinite_prompt_loop(task_callback, title) -> list[str]`
-
-Run a continuous loop until user presses Ctrl+C.
-
-### `InfinitePromptResponse`
-
-- `result`: `PromptResult.STOP` or `PromptResult.CONTINUE`
-- `instruction`: Optional string with user's instruction
-- `should_stop`: Boolean property
-- `should_continue`: Boolean property
+┌─────────────────── ✦ Agent Checkpoint ✦ ───────────────────┐
+│                                                             │
+│  ⏸  Press Ctrl+C to stop the agent                         │
+│  ▶  Or type instructions below to continue                 │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+→ Enter instruction: fix the bug in main.py
+CONTINUE:fix the bug in main.py
+```
